@@ -35,3 +35,8 @@ monitor_speed = 115200
 lib_deps =
     https://github.com/micro-ROS/micro_ros_platformio
 ```
+
+### Agent:
+```sh
+ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0 
+```
