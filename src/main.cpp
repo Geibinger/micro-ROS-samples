@@ -1,50 +1,48 @@
 #include <ros2arduino.h>
+
 #include <WiFi.h>
-#include <WiFiUdp.h>
+#include <WiFiClient.h>
 
 #include "conf_network.h"
 
-#ifndef LED_BUILTIN // To support some boards (eg. some esp32 boards)
-#define LED_BUILTIN 13
-#endif 
+#define PUBLISH_FREQUENCY 2 //hz
 
-WiFiUDP XRCEDDS_PORT;
 
-void subscribeLed(std_msgs::Bool* msg, void* arg)
+// MicroXRCEAgent tcp4 -p 8888
+
+
+void publishString(std_msgs::String* msg, void* arg)
 {
   (void)(arg);
 
-  digitalWrite(LED_BUILTIN, msg->data);
+  static int cnt = 0;
+  sprintf(msg->data, "Hello ros2arduino %d", cnt++);
 }
 
-class LedSub : public ros2::Node
+class StringPub : public ros2::Node
 {
 public:
-  LedSub()
-  : Node("ros2arduino_sub_node")
+  StringPub()
+  : Node("ros2arduino_pub_node")
   {
-    this->createSubscriber<std_msgs::Bool>("arduino_led", (ros2::CallbackFunc)subscribeLed, nullptr);
+    ros2::Publisher<std_msgs::String>* publisher_ = this->createPublisher<std_msgs::String>("arduino_chatter");
+    this->createWallFreq(PUBLISH_FREQUENCY, (ros2::CallbackFunc)publishString, nullptr, publisher_);
   }
 };
+
+WiFiClient client;
 
 void setup() 
 {
   WiFi.begin(SSID, SSID_PW);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi...");
-  }
-  Serial.println("Connected to WiFi");
+  while(WiFi.status() != WL_CONNECTED);
 
-  XRCEDDS_PORT.begin(AGENT_PORT);
-  
-  ros2::init(&XRCEDDS_PORT);
-  pinMode(LED_BUILTIN, OUTPUT);
+  ros2::init(&client, AGENT_IP, AGENT_PORT);
 }
 
 void loop() 
 {
-  static LedSub LedNode;
+  static StringPub StringNode;
 
-  ros2::spin(&LedNode);
+  ros2::spin(&StringNode);
 }
