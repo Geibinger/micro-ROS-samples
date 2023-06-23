@@ -17,8 +17,6 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 
-#define LED_BUILTIN 13  // Change this to your board's built-in LED pin if different
-
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 
@@ -31,6 +29,7 @@ void error_loop() {
 
 void subscription_callback(const void * msgin) {
   const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+  Serial.println(msg->data);
   if (msg->data == 0) {
     digitalWrite(LED_BUILTIN, LOW);
   } else {
